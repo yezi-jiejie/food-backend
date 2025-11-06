@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int      @id @default(autoincrement())
+  username         String   @unique
+  email            String   @unique
+  password         String
+  role             String   @default("USER")
+  gender           String?
+  age              Int?
+  height           Float?
+  weight           Float?
+  calorie_goal     Int      @default(2000)
+  diet_preferences String?
+  allergies        String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  dietLogs         DietLog[]
+}
+
+model Food {
+  id        Int      @id @default(autoincrement())
+  name      String
+  calories  Int
+  protein   Float
+  fat       Float
+  carbs     Float
+  imageUrl  String?  @map("image_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  dietLogs  DietLog[]
+}
+
+model Warning {
+  id          Int      @id @default(autoincrement())
+  foodName    String   @map("food_name")
+  riskType    String   @map("risk_type")
+  riskLevel   String   @map("risk_level")
+  description String
+  imageUrl    String?  @map("image_url")
+  publishDate String   @map("publish_date")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+}
+
+model DietLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  foodId    Int      @map("food_id")
+  quantity  Int      @default(100)
+  date      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  food Food @relation(fields: [foodId], references: [id], onDelete: Cascade)
+}
+
+model Recipe {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  mealType    String   @map("meal_type")
+  calories    Int
+  prepTime    String?  @map("prep_time")
+  imageUrl    String?  @map("image_url")
+  ingredients String
+  steps       String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  tags        RecipeTag[]
+}
+
+model RecipeTag {
+  id       Int    @id @default(autoincrement())
+  recipeId Int    @map("recipe_id")
+  tag      String
+  recipe   Recipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  
+  @@map("recipe_tags")
+}
