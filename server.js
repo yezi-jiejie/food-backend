@@ -7,7 +7,6 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use('/api', routes);
 
 // 临时调试路由 - 检查数据库状态
 app.get('/debug-db', async (req, res) => {
@@ -44,6 +43,30 @@ app.get('/debug-seed', async (req, res) => {
     res.json({ success: false, message: error.message });
   }
 });
+
+// 食品数据接口 - 返回详细错误信息
+app.get('/api/foods', async (req, res) => {
+  try {
+    const { PrismaClient } = require('@prisma/client');
+    const prisma = new PrismaClient();
+    
+    console.log('尝试连接数据库...');
+    const foods = await prisma.food.findMany();
+    console.log(`成功获取 ${foods.length} 条食品数据`);
+    
+    res.json({ success: true, data: foods });
+  } catch (error) {
+    console.error('获取食品失败详情:', error);
+    res.json({ 
+      success: false, 
+      message: '获取食品失败',
+      error: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+app.use('/api', routes);
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`服务器运行在端口 ${PORT}`);
