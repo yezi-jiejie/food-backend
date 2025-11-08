@@ -41,4 +41,3 @@ process.on('SIGINT', async () => {
   await prisma.$disconnect();
   process.exit(0);
 });
-这样修改呢？
