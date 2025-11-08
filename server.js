@@ -5,7 +5,15 @@ const { PrismaClient } = require('@prisma/client');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const prisma = new PrismaClient();
+
+// 直接硬编码数据库连接，绕过环境变量问题
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: "mysql://root:vnGseEkwdsCyhJYIRPMTJpNuzrbXUghz@metro.proxy.rlwy.net:10233/railway"
+    }
+  }
+});
 
 app.use(cors());
 app.use(express.json());
