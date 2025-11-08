@@ -6,7 +6,12 @@ const { PrismaClient } = require('@prisma/client');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 直接硬编码数据库连接，绕过环境变量问题
+// 修复 BigInt JSON 序列化问题
+BigInt.prototype.toJSON = function() {
+  return this.toString();
+};
+
+// 直接硬编码数据库连接
 const prisma = new PrismaClient({
   datasources: {
     db: {
