@@ -20,47 +20,31 @@ const prisma = new PrismaClient({
   }
 });
 
+// 初始化数据库和数据填充
+async function initializeDatabase() {
+  try {
+    console.log('开始初始化数据库...');
+    
+    // 运行 Prisma 迁移创建所有表结构
+    const { execSync } = require('child_process');
+    console.log('运行数据库迁移...');
+    execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+    console.log('✅ 数据库表结构创建成功');
+    
+    // 运行数据填充
+    console.log('开始填充初始数据...');
+    require('./prisma/seed.js');
+    console.log('✅ 初始数据填充完成');
+    
+  } catch (error) {
+    console.error('❌ 数据库初始化失败:', error.message);
+  }
+}
+
 app.use(cors());
 app.use(express.json());
 
-// 初始化数据库表
-app.get('/init-db', async (req, res) => {
-  try {
-    console.log('开始创建数据库表...');
-    
-    // 创建 Food 表
-    await prisma.$executeRaw`
-      CREATE TABLE IF NOT EXISTS Food (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL UNIQUE,
-        calories INT NOT NULL,
-        protein FLOAT NOT NULL,
-        fat FLOAT NOT NULL,
-        carbs FLOAT NOT NULL,
-        image_url VARCHAR(500),
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      )
-    `;
-    
-    // 插入示例数据
-    await prisma.$executeRaw`
-      INSERT IGNORE INTO Food (name, calories, protein, fat, carbs, image_url) VALUES
-      ('苹果', 52, 0.3, 0.2, 14, 'picture/苹果.jpg'),
-      ('鸡胸肉', 165, 31, 3.6, 0, 'picture/鸡胸肉.jpg'),
-      ('燕麦', 389, 17, 7, 66, 'picture/燕麦.jpg')
-    `;
-    
-    console.log('数据库表创建成功');
-    const foods = await prisma.food.findMany();
-    res.json({ success: true, message: '数据库初始化成功', count: foods.length, data: foods });
-  } catch (error) {
-    console.error('数据库初始化失败:', error);
-    res.json({ success: false, error: error.message });
-  }
-});
-
-// 数据库连接测试
+// 添加数据库连接测试
 app.get('/test-db', async (req, res) => {
   try {
     const result = await prisma.$queryRaw`SELECT 1 as test`;
@@ -72,18 +56,8 @@ app.get('/test-db', async (req, res) => {
   }
 });
 
-// 食品数据调试接口
-app.get('/debug-foods', async (req, res) => {
-  try {
-    console.log('开始查询食品数据...');
-    const foods = await prisma.food.findMany();
-    console.log('查询到的食品数据:', foods);
-    res.json({ success: true, count: foods.length, data: foods });
-  } catch (error) {
-    console.error('查询食品失败:', error);
-    res.json({ success: false, error: error.message });
-  }
-});
+// 初始化数据库
+initializeDatabase();
 
 app.use('/api', routes);
 
