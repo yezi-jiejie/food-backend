@@ -23,7 +23,7 @@ const prisma = new PrismaClient({
 app.use(cors());
 app.use(express.json());
 
-// 添加数据库连接测试
+// 数据库连接测试
 app.get('/test-db', async (req, res) => {
   try {
     const result = await prisma.$queryRaw`SELECT 1 as test`;
@@ -32,6 +32,19 @@ app.get('/test-db', async (req, res) => {
   } catch (error) {
     console.error('❌ 数据库连接失败:', error);
     res.json({ success: false, message: '数据库连接失败', error: error.message });
+  }
+});
+
+// 食品数据调试接口
+app.get('/debug-foods', async (req, res) => {
+  try {
+    console.log('开始查询食品数据...');
+    const foods = await prisma.food.findMany();
+    console.log('查询到的食品数据:', foods);
+    res.json({ success: true, count: foods.length, data: foods });
+  } catch (error) {
+    console.error('查询食品失败:', error);
+    res.json({ success: false, error: error.message });
   }
 });
 
